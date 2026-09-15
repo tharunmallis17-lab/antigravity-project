@@ -1,0 +1,1328 @@
+from flask import Flask, request, jsonify, render_template_string
+from openai import OpenAI
+import os
+import json
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+app = Flask(__name__)
+
+# Put your API key in an environment variable.
+# Windows CMD:
+# set OPENAI_API_KEY=your_api_key
+#
+# Windows PowerShell:
+# $env:OPENAI_API_KEY="your_api_key"
+
+API_KEY = os.getenv("OPENAI_API_KEY")
+
+if API_KEY:
+    client = OpenAI(api_key=API_KEY)
+else:
+    client = None
+
+
+# ============================================================
+# HTML + CSS + JAVASCRIPT
+# ============================================================
+
+HTML = """
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>CitizenAI - Complaint Intelligence</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eef4ff,
+            #f8fafc
+        );
+
+    min-height: 100vh;
+
+    color: #172033;
+}
+
+
+/* ================= HEADER ================= */
+
+.header {
+
+    background:
+        linear-gradient(
+            135deg,
+            #0f172a,
+            #1e3a8a
+        );
+
+    color: white;
+
+    padding: 25px 7%;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    box-shadow:
+        0 5px 20px
+        rgba(0,0,0,0.15);
+}
+
+.logo {
+
+    font-size: 25px;
+
+    font-weight: bold;
+}
+
+.logo span {
+
+    color: #60a5fa;
+}
+
+.status {
+
+    background: rgba(255,255,255,0.12);
+
+    padding: 8px 14px;
+
+    border-radius: 20px;
+
+    font-size: 13px;
+}
+
+
+/* ================= MAIN ================= */
+
+.container {
+
+    width: 92%;
+
+    max-width: 1100px;
+
+    margin: 40px auto;
+}
+
+
+/* ================= HERO ================= */
+
+.hero {
+
+    text-align: center;
+
+    margin-bottom: 35px;
+}
+
+.hero h1 {
+
+    font-size: 38px;
+
+    margin-bottom: 12px;
+
+    color: #0f172a;
+}
+
+.hero p {
+
+    color: #64748b;
+
+    font-size: 16px;
+
+    max-width: 700px;
+
+    margin: auto;
+
+    line-height: 1.6;
+}
+
+
+/* ================= CARD ================= */
+
+.card {
+
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 30px;
+
+    box-shadow:
+        0 12px 35px
+        rgba(15,23,42,0.08);
+
+    margin-bottom: 25px;
+}
+
+
+/* ================= FORM ================= */
+
+.form-title {
+
+    font-size: 21px;
+
+    font-weight: bold;
+
+    margin-bottom: 20px;
+}
+
+label {
+
+    display: block;
+
+    margin-top: 18px;
+
+    margin-bottom: 7px;
+
+    font-weight: 600;
+
+    color: #334155;
+}
+
+input,
+textarea {
+
+    width: 100%;
+
+    padding: 13px 14px;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 9px;
+
+    font-size: 15px;
+
+    outline: none;
+
+    transition: 0.2s;
+}
+
+input:focus,
+textarea:focus {
+
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(37,99,235,0.10);
+}
+
+textarea {
+
+    resize: vertical;
+
+    min-height: 150px;
+}
+
+
+/* ================= BUTTON ================= */
+
+button {
+
+    width: 100%;
+
+    margin-top: 25px;
+
+    padding: 15px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #1d4ed8
+        );
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+button:hover {
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 8px 20px
+        rgba(37,99,235,0.25);
+}
+
+button:disabled {
+
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+
+/* ================= LOADING ================= */
+
+.loading {
+
+    display: none;
+
+    text-align: center;
+
+    padding: 25px;
+
+    color: #2563eb;
+
+    font-weight: bold;
+}
+
+.spinner {
+
+    width: 30px;
+
+    height: 30px;
+
+    border: 4px solid #dbeafe;
+
+    border-top: 4px solid #2563eb;
+
+    border-radius: 50%;
+
+    margin: 0 auto 12px;
+
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* ================= RESULT ================= */
+
+.result {
+
+    display: none;
+}
+
+.result-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+}
+
+.result-header h2 {
+
+    font-size: 23px;
+}
+
+.ai-badge {
+
+    background: #dcfce7;
+
+    color: #166534;
+
+    padding: 7px 12px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: bold;
+}
+
+
+/* ================= GRID ================= */
+
+.result-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 15px;
+}
+
+.info-box {
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    padding: 18px;
+
+    border-radius: 12px;
+}
+
+.info-label {
+
+    font-size: 12px;
+
+    color: #64748b;
+
+    margin-bottom: 7px;
+
+    text-transform: uppercase;
+
+    font-weight: bold;
+}
+
+.info-value {
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    color: #0f172a;
+}
+
+
+/* ================= PRIORITY ================= */
+
+.priority-high {
+
+    color: #dc2626;
+}
+
+.priority-medium {
+
+    color: #d97706;
+}
+
+.priority-low {
+
+    color: #16a34a;
+}
+
+
+/* ================= CONFIDENCE ================= */
+
+.confidence-container {
+
+    margin-top: 20px;
+}
+
+.confidence-bar {
+
+    height: 10px;
+
+    background: #e2e8f0;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+
+    margin-top: 8px;
+}
+
+.confidence-fill {
+
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #2563eb,
+            #22c55e
+        );
+
+    width: 0%;
+
+    transition: width 0.7s;
+}
+
+
+/* ================= TEXT SECTIONS ================= */
+
+.text-section {
+
+    margin-top: 20px;
+
+    background: #f8fafc;
+
+    border-left: 4px solid #2563eb;
+
+    padding: 18px;
+
+    border-radius: 8px;
+}
+
+.text-section h3 {
+
+    font-size: 15px;
+
+    margin-bottom: 8px;
+
+    color: #334155;
+}
+
+.text-section p {
+
+    color: #475569;
+
+    line-height: 1.6;
+}
+
+
+/* ================= FOOTER ================= */
+
+.footer {
+
+    text-align: center;
+
+    padding: 25px;
+
+    color: #94a3b8;
+
+    font-size: 13px;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:700px) {
+
+    .header {
+
+        flex-direction: column;
+
+        gap: 12px;
+
+        text-align: center;
+    }
+
+    .hero h1 {
+
+        font-size: 30px;
+    }
+
+    .result-grid {
+
+        grid-template-columns: 1fr;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- ================= HEADER ================= -->
+
+<header class="header">
+
+    <div class="logo">
+        Citizen<span>AI</span>
+    </div>
+
+    <div class="status">
+        AI Complaint Intelligence
+    </div>
+
+</header>
+
+
+
+<!-- ================= MAIN ================= -->
+
+<div class="container">
+
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <h1>
+            Citizen Complaint Categorization
+        </h1>
+
+        <p>
+            Describe your problem in your own words.
+            Our AI analyzes the complaint and identifies
+            the appropriate government department,
+            priority and recommended action.
+        </p>
+
+    </section>
+
+
+
+    <!-- ================= COMPLAINT FORM ================= -->
+
+    <div class="card">
+
+        <div class="form-title">
+            Submit Your Complaint
+        </div>
+
+
+        <label>
+            Citizen Name
+        </label>
+
+        <input
+            type="text"
+            id="citizenName"
+            placeholder="Enter your name"
+        >
+
+
+        <label>
+            Location
+        </label>
+
+        <input
+            type="text"
+            id="location"
+            placeholder="Example: Dharmapuri"
+        >
+
+
+        <label>
+            Describe Your Problem
+        </label>
+
+        <textarea
+            id="complaint"
+            placeholder="Example: The street light near my house has not been working for five days and it is very difficult to travel at night."
+        ></textarea>
+
+
+        <button
+            id="analyzeButton"
+            onclick="analyzeComplaint()"
+        >
+            Analyze Complaint with AI
+        </button>
+
+
+        <!-- LOADING -->
+
+        <div
+            class="loading"
+            id="loading"
+        >
+
+            <div class="spinner"></div>
+
+            AI is analyzing your complaint...
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================= RESULT ================= -->
+
+    <div
+        class="card result"
+        id="result"
+    >
+
+        <div class="result-header">
+
+            <h2>
+                AI Classification Result
+            </h2>
+
+            <div class="ai-badge">
+                AI ANALYZED
+            </div>
+
+        </div>
+
+
+        <div class="result-grid">
+
+
+            <!-- CATEGORY -->
+
+            <div class="info-box">
+
+                <div class="info-label">
+                    Category
+                </div>
+
+                <div
+                    class="info-value"
+                    id="category"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <!-- DEPARTMENT -->
+
+            <div class="info-box">
+
+                <div class="info-label">
+                    Department
+                </div>
+
+                <div
+                    class="info-value"
+                    id="department"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <!-- PRIORITY -->
+
+            <div class="info-box">
+
+                <div class="info-label">
+                    Priority
+                </div>
+
+                <div
+                    class="info-value"
+                    id="priority"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+            <!-- CONFIDENCE -->
+
+            <div class="info-box">
+
+                <div class="info-label">
+                    Confidence
+                </div>
+
+                <div
+                    class="info-value"
+                    id="confidence"
+                >
+                    -
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- CONFIDENCE BAR -->
+
+        <div class="confidence-container">
+
+            <b>
+                AI Confidence
+            </b>
+
+            <div class="confidence-bar">
+
+                <div
+                    class="confidence-fill"
+                    id="confidenceFill"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- REASON -->
+
+        <div class="text-section">
+
+            <h3>
+                Why AI Selected This Department
+            </h3>
+
+            <p id="reason">
+                -
+            </p>
+
+        </div>
+
+
+
+        <!-- SUMMARY -->
+
+        <div class="text-section">
+
+            <h3>
+                Complaint Summary
+            </h3>
+
+            <p id="summary">
+                -
+            </p>
+
+        </div>
+
+
+
+        <!-- ACTION -->
+
+        <div class="text-section">
+
+            <h3>
+                Recommended Department Action
+            </h3>
+
+            <p id="action">
+                -
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+<footer class="footer">
+
+    CitizenAI Prototype |
+    LLM-Based Government Complaint Routing
+
+</footer>
+
+
+
+<!-- ================= JAVASCRIPT ================= -->
+
+<script>
+
+
+async function analyzeComplaint() {
+
+
+    const name =
+        document.getElementById("citizenName").value.trim();
+
+
+    const location =
+        document.getElementById("location").value.trim();
+
+
+    const complaint =
+        document.getElementById("complaint").value.trim();
+
+
+    if (complaint === "") {
+
+        alert(
+            "Please describe your complaint."
+        );
+
+        return;
+    }
+
+
+    const button =
+        document.getElementById("analyzeButton");
+
+
+    const loading =
+        document.getElementById("loading");
+
+
+    const result =
+        document.getElementById("result");
+
+
+    button.disabled = true;
+
+    loading.style.display = "block";
+
+    result.style.display = "none";
+
+
+    try {
+
+
+        const response =
+            await fetch(
+                "/analyze",
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        name: name,
+
+                        location: location,
+
+                        complaint: complaint
+
+                    })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error ||
+                "Something went wrong."
+            );
+
+        }
+
+
+        // CATEGORY
+
+        document.getElementById(
+            "category"
+        ).textContent =
+            data.category;
+
+
+        // DEPARTMENT
+
+        document.getElementById(
+            "department"
+        ).textContent =
+            data.department;
+
+
+        // PRIORITY
+
+        const priority =
+            document.getElementById(
+                "priority"
+            );
+
+
+        priority.textContent =
+            data.priority;
+
+
+        priority.className =
+            "info-value priority-" +
+            data.priority.toLowerCase();
+
+
+        // CONFIDENCE
+
+        document.getElementById(
+            "confidence"
+        ).textContent =
+            data.confidence + "%";
+
+
+        document.getElementById(
+            "confidenceFill"
+        ).style.width =
+            data.confidence + "%";
+
+
+        // REASON
+
+        document.getElementById(
+            "reason"
+        ).textContent =
+            data.reason;
+
+
+        // SUMMARY
+
+        document.getElementById(
+            "summary"
+        ).textContent =
+            data.summary;
+
+
+        // ACTION
+
+        document.getElementById(
+            "action"
+        ).textContent =
+            data.recommended_action;
+
+
+        result.style.display =
+            "block";
+
+
+        result.scrollIntoView({
+            behavior: "smooth"
+        });
+
+
+    }
+
+    catch(error) {
+
+        alert(
+            "Error: " +
+            error.message
+        );
+
+        console.error(error);
+
+    }
+
+    finally {
+
+        button.disabled = false;
+
+        loading.style.display =
+            "none";
+
+    }
+
+}
+
+
+</script>
+
+
+</body>
+
+</html>
+"""
+
+
+# ============================================================
+# HOME PAGE
+# ============================================================
+
+@app.route("/")
+def home():
+
+    return render_template_string(HTML)
+
+
+# ============================================================
+# AI ANALYSIS
+# ============================================================
+
+@app.route("/analyze", methods=["POST"])
+def analyze():
+
+    data = request.get_json()
+
+    name = data.get("name", "").strip()
+
+    location = data.get("location", "").strip()
+
+    complaint = data.get("complaint", "").strip()
+
+
+    if not complaint:
+
+        return jsonify({
+            "error":
+            "Complaint cannot be empty."
+        }), 400
+
+
+    # --------------------------------------------------------
+    # DEMO FALLBACK
+    # --------------------------------------------------------
+
+    if client is None:
+
+        return jsonify({
+
+            "category":
+                "Street Lighting",
+
+            "department":
+                "Electricity Department",
+
+            "priority":
+                "Medium",
+
+            "confidence":
+                91,
+
+            "reason":
+                "The complaint describes a non-working street light, so it should be handled by the department responsible for electricity and street lighting.",
+
+            "summary":
+                complaint,
+
+            "recommended_action":
+                "Inspect the reported street light and repair or replace the faulty lighting equipment."
+
+        })
+
+
+    # ========================================================
+    # LLM PROMPT
+    # ========================================================
+
+    prompt = f"""
+You are an intelligent government Citizen Complaint
+Categorization and Routing System.
+
+Your job is to analyze a citizen complaint and classify
+it into the correct government service category and
+department.
+
+IMPORTANT:
+
+Do NOT ask the citizen to choose a department.
+
+The AI must determine the department automatically.
+
+AVAILABLE CATEGORIES:
+
+1. Water Supply
+2. Electricity
+3. Street Lighting
+4. Roads & Infrastructure
+5. Waste Management
+6. Drainage
+7. Education
+8. Public Transport
+9. Government Documents
+10. Public Health
+
+DEPARTMENT MAPPING:
+
+Water Supply
+-> Water Supply Department
+
+Electricity
+-> Electricity Department
+
+Street Lighting
+-> Electricity Department
+
+Roads & Infrastructure
+-> Public Works Department
+
+Waste Management
+-> Sanitation Department
+
+Drainage
+-> Municipal Department
+
+Education
+-> Education Department
+
+Public Transport
+-> Transport Department
+
+Government Documents
+-> Revenue / E-Governance Department
+
+Public Health
+-> Health Department
+
+
+PRIORITY RULES:
+
+High:
+- immediate public danger
+- major accident risk
+- severe infrastructure failure
+- serious health/public safety issue
+- large number of people affected
+
+Medium:
+- important problem
+- repeated service failure
+- moderate public inconvenience
+
+Low:
+- minor issue
+- general information
+- small inconvenience
+
+
+CITIZEN:
+
+Name:
+{name}
+
+Location:
+{location}
+
+
+COMPLAINT:
+
+{complaint}
+
+
+Return ONLY valid JSON.
+
+Do not use Markdown.
+
+Use exactly this structure:
+
+{{
+    "category": "one category from the list",
+    "department": "correct government department",
+    "priority": "High, Medium, or Low",
+    "confidence": 0,
+    "reason": "short explanation",
+    "summary": "short professional summary",
+    "recommended_action": "what the department should do"
+}}
+
+The confidence must be an integer from 0 to 100.
+"""
+
+
+    try:
+
+        response = client.responses.create(
+
+            model="gpt-5.6-luna",
+
+            input=prompt
+
+        )
+
+
+        text = response.output_text.strip()
+
+
+        # Remove accidental Markdown JSON fences
+
+        if text.startswith("```"):
+
+            text = text.replace(
+                "```json", ""
+            ).replace(
+                "```", ""
+            ).strip()
+
+
+        result = json.loads(text)
+
+
+        # ----------------------------------------------------
+        # BASIC VALIDATION
+        # ----------------------------------------------------
+
+        required_fields = [
+
+            "category",
+            "department",
+            "priority",
+            "confidence",
+            "reason",
+            "summary",
+            "recommended_action"
+
+        ]
+
+
+        for field in required_fields:
+
+            if field not in result:
+
+                raise ValueError(
+                    f"Missing field: {field}"
+                )
+
+
+        # Keep confidence within 0-100
+
+        result["confidence"] = max(
+            0,
+            min(
+                100,
+                int(result["confidence"])
+            )
+        )
+
+
+        return jsonify(result)
+
+
+    except json.JSONDecodeError:
+
+        return jsonify({
+
+            "error":
+            "The AI returned an invalid response. Please try again."
+
+        }), 500
+
+
+    except Exception as e:
+
+        return jsonify({
+
+            "error":
+            "AI service error: " + str(e)
+
+        }), 500
+
+
+# ============================================================
+# RUN APPLICATION
+# ============================================================
+
+if __name__ == "__main__":
+
+    app.run(
+        debug=True,
+        host="127.0.0.1",
+        port=5000
+    )
