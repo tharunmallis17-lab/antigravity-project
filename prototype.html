@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>CitizenAI</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        Citizen<span>AI</span>
+    </div>
+
+    <div class="badge">
+        LLM Powered
+    </div>
+
+</header>
+
+
+<main>
+
+    <section class="hero">
+
+        <h1>
+            Citizen Complaint
+            <span>Categorization System</span>
+        </h1>
+
+        <p>
+            Describe your problem in normal language.
+            AI will automatically identify the appropriate
+            government department.
+        </p>
+
+    </section>
+
+
+    <section class="card">
+
+        <h2>Submit Complaint</h2>
+
+        <label>Location</label>
+
+        <input
+            id="location"
+            type="text"
+            placeholder="Example: Dharmapuri"
+        >
+
+
+        <label>Complaint</label>
+
+        <textarea
+            id="complaint"
+            placeholder="Example: The street light near my house has not been working for five days."
+        ></textarea>
+
+
+        <button
+            id="submitBtn"
+            onclick="analyzeComplaint()"
+        >
+            Analyze Complaint
+        </button>
+
+
+        <div
+            id="loading"
+            class="loading"
+        >
+            AI is analyzing the complaint...
+        </div>
+
+    </section>
+
+
+    <section
+        id="result"
+        class="card result"
+    >
+
+        <div class="result-title">
+
+            <h2>AI Result</h2>
+
+            <span>AI ANALYZED</span>
+
+        </div>
+
+
+        <div class="grid">
+
+
+            <div class="box">
+
+                <small>CATEGORY</small>
+
+                <strong id="category">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="box">
+
+                <small>DEPARTMENT</small>
+
+                <strong id="department">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="box">
+
+                <small>PRIORITY</small>
+
+                <strong id="priority">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="box">
+
+                <small>CONFIDENCE</small>
+
+                <strong>
+                    <span id="confidence">-</span>%
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="section">
+
+            <h3>Why this department?</h3>
+
+            <p id="reason"></p>
+
+        </div>
+
+
+        <div class="section">
+
+            <h3>Complaint Summary</h3>
+
+            <p id="summary"></p>
+
+        </div>
+
+
+        <div class="section">
+
+            <h3>Recommended Action</h3>
+
+            <p id="action"></p>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    CitizenAI Prototype |
+    INTELLIX 2026
+
+</footer>
+
+
+<script>
+
+async function analyzeComplaint() {
+
+    const location =
+        document.getElementById("location").value.trim();
+
+    const complaint =
+        document.getElementById("complaint").value.trim();
+
+    const button =
+        document.getElementById("submitBtn");
+
+    const loading =
+        document.getElementById("loading");
+
+    const result =
+        document.getElementById("result");
+
+
+    if (complaint === "") {
+
+        alert("Please enter your complaint.");
+
+        return;
+    }
+
+
+    button.disabled = true;
+
+    loading.style.display = "block";
+
+    result.style.display = "none";
+
+
+    try {
+
+        const response = await fetch(
+            "/analyze",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    location: location,
+
+                    complaint: complaint
+
+                })
+            }
+        );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error ||
+                "Server error"
+            );
+
+        }
+
+
+        document.getElementById(
+            "category"
+        ).textContent =
+            data.category;
+
+
+        document.getElementById(
+            "department"
+        ).textContent =
+            data.department;
+
+
+        document.getElementById(
+            "priority"
+        ).textContent =
+            data.priority;
+
+
+        document.getElementById(
+            "confidence"
+        ).textContent =
+            data.confidence;
+
+
+        document.getElementById(
+            "reason"
+        ).textContent =
+            data.reason;
+
+
+        document.getElementById(
+            "summary"
+        ).textContent =
+            data.summary;
+
+
+        document.getElementById(
+            "action"
+        ).textContent =
+            data.recommended_action;
+
+
+        result.style.display = "block";
+
+
+        result.scrollIntoView({
+            behavior: "smooth"
+        });
+
+    }
+
+    catch(error) {
+
+        alert(
+            "Error: " +
+            error.message
+        );
+
+        console.error(error);
+
+    }
+
+    finally {
+
+        button.disabled = false;
+
+        loading.style.display = "none";
+
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>
+from flask import Flask, render_template, request, jsonify
+from openai import OpenAI
+import os
+import json
+
+app = Flask(__name__)
+
+# OpenAI client
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY")
+)
+
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+
+@app.route("/analyze", methods=["POST"])
+def analyze():
+
+    data = request.get_json()
+
+    complaint = data.get("complaint", "").strip()
+    location = data.get("location", "").strip()
+
+    if complaint == "":
+        return jsonify({
+            "error": "Please enter a complaint."
+        }), 400
+
+    prompt = f"""
+You are an AI Citizen Complaint Categorization System
+for a government public-service portal.
+
+Analyze the citizen complaint and automatically route it
+to the correct department.
+
+The citizen does NOT select the department.
+
+Available categories:
+
+Water Supply
+Electricity
+Street Lighting
+Roads & Infrastructure
+Waste Management
+Drainage
+Education
+Public Transport
+Government Documents
+Public Health
+
+Department mapping:
+
+Water Supply -> Water Supply Department
+Electricity -> Electricity Department
+Street Lighting -> Electricity Department
+Roads & Infrastructure -> Public Works Department
+Waste Management -> Sanitation Department
+Drainage -> Municipal Department
+Education -> Education Department
+Public Transport -> Transport Department
+Government Documents -> Revenue / E-Governance Department
+Public Health -> Health Department
+
+Priority rules:
+
+High = danger, emergency, major failure, health risk,
+or many people affected.
+
+Medium = important service problem or repeated issue.
+
+Low = minor issue or small inconvenience.
+
+Citizen location:
+{location}
+
+Complaint:
+{complaint}
+
+Return ONLY JSON.
+
+Use exactly this format:
+
+{{
+    "category": "category name",
+    "department": "department name",
+    "priority": "High or Medium or Low",
+    "confidence": 95,
+    "reason": "short explanation",
+    "summary": "short complaint summary",
+    "recommended_action": "action the department should take"
+}}
+
+Confidence must be an integer between 0 and 100.
+"""
+
+    try:
+
+        response = client.responses.create(
+            model="gpt-5.6-luna",
+            input=prompt
+        )
+
+        result_text = response.output_text.strip()
+
+        # Remove Markdown code fences if the model adds them
+        if result_text.startswith("```"):
+            result_text = result_text.replace("```json", "")
+            result_text = result_text.replace("```", "")
+            result_text = result_text.strip()
+
+        result = json.loads(result_text)
+
+        return jsonify(result)
+
+    except Exception as e:
+
+        print("ERROR:", e)
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+
+if __name__ == "__main__":
+    app.run(
+        debug=True,
+        host="127.0.0.1",
+        port=5000
+    )
