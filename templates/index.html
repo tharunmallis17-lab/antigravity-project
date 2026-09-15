@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicRoute AI – Intelligent Citizen Complaint Routing System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #eef4ff 0%, #f8fafc 100%);
+            min-height: 100vh;
+            color: #172033;
+            line-height: 1.5;
+        }
+
+        /* ================= HEADER ================= */
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: white;
+            padding: 16px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .logo span {
+            color: #60a5fa;
+        }
+
+        .badge-gov {
+            background: rgba(96, 165, 250, 0.2);
+            border: 1px solid rgba(96, 165, 250, 0.4);
+            color: #93c5fd;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        /* User Header Pill */
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .user-role-tag {
+            font-size: 10px;
+            color: #93c5fd;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .btn-header {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-header-login {
+            background: #2563eb;
+            color: white;
+        }
+        .btn-header-login:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .btn-header-admin {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        .btn-header-admin:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-header-logout {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .btn-header-logout:hover {
+            background: rgba(239, 68, 68, 0.35);
+        }
+
+        /* ================= NAVIGATION BAR ================= */
+        .nav-bar {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 6%;
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-link {
+            padding: 14px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        /* ================= CONTAINER ================= */
+        .container {
+            width: 92%;
+            max-width: 1150px;
+            margin: 30px auto;
+        }
+
+        /* ================= BANNER / HERO ================= */
+        .hero {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hero h1 {
+            font-size: 34px;
+            margin-bottom: 10px;
+            color: #0f172a;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .hero p {
+            color: #64748b;
+            font-size: 16px;
+            max-width: 720px;
+            margin: auto;
+            line-height: 1.6;
+        }
+
+        .role-alert-banner {
+            margin-bottom: 25px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .role-alert-citizen {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+
+        .role-alert-admin {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        /* ================= CARDS ================= */
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 12px 35px rgba(15,23,42,0.08);
+            margin-bottom: 25px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* ================= FORMS & BUTTONS ================= */
+        label {
+            display: block;
+            margin-top: 16px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        .btn-primary {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            border: none;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(37,99,235,0.25);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        /* ================= MODALS ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: white;
+            width: 90%;
+            max-width: 540px;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+            animation: modalFadeIn 0.25s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+
+        .modal-close:hover {
+            color: #1e293b;
+        }
+
+        .demo-accounts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+            max-height: 240px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .demo-account-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .demo-account-item:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .account-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .account-sub {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* ================= SECURITY TEST SUITE CARD ================= */
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .security-badge-pass {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .security-badge-fail {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .test-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .test-box h4 {
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #1e293b;
+        }
+
+        .test-box p {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .test-output {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 11px;
+            margin-top: 10px;
+            min-height: 48px;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        /* ================= FOOTER ================= */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+            font-size: 13px;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 40px;
+            background: white;
+        }
+
+        .disclaimer-box {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            color: #92400e;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 12px;
+            max-width: 800px;
+            margin: 15px auto 0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= TOP HEADER ================= -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo" onclick="window.location.reload()">
+                CivicRoute<span>AI</span>
+            </div>
+            <div class="badge-gov">GOV-21 Engine</div>
+        </div>
+
+        <div class="header-right" id="headerAuthArea">
+            <!-- Rendered dynamically by JavaScript -->
+            <button class="btn-header btn-header-login" onclick="openGoogleLoginModal()">
+                Continue with Google
+            </button>
+            <button class="btn-header btn-header-admin" onclick="openAdminLoginModal()">
+                Gov Admin Portal
+            </button>
+        </div>
+    </header>
+
+    <!-- ================= ROLE STATUS BANNER ================= -->
+    <div class="container" style="margin-top: 20px; margin-bottom: 0;">
+        <div id="roleBanner" class="role-alert-banner role-alert-citizen" style="display: none;">
+            <div>
+                <strong id="roleBannerTitle">Active Session: Citizen Portal</strong>
+                <div id="roleBannerSubtitle" style="font-size: 12px; opacity: 0.9;">Authenticated via Google</div>
+            </div>
+            <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="openProfileModal()">
+                Profile Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= MAIN CONTAINER ================= -->
+    <main class="container">
+
+        <!-- HERO SECTION -->
+        <section class="hero">
+            <h1>Intelligent Citizen Complaint Routing</h1>
+            <p>
+                Prototype dual-role grievance management system. Citizens submit civic issues with automated 
+                department recommendation, and Department Administrators manage resolution queues with strict data isolation.
+            </p>
+        </section>
+
+        <!-- ================= PHASE 1 VERIFICATION & ROLE TESTING SUITE ================= -->
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">Phase 1: Authentication & Role Authorization Test Suite</h2>
+                    <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                        Interactive security test panel verifying server-side role enforcement, @gov.in department isolation, and unauthorized access rejection.
+                    </p>
+                </div>
+                <span id="overallTestBadge" class="security-badge security-badge-pass">READY TO TEST</span>
+            </div>
+
+            <div class="test-grid">
+                <!-- Test 1: Citizen Accessing Admin Route -->
+                <div class="test-box">
+                    <h4>Test 1: Citizen Accessing Admin Route</h4>
+                    <p>Attempts to access <code>/api/admin/verify</code> with the active session token. Must strictly return <strong>403 Forbidden</strong> if logged in as Citizen.</p>
+                    <button class="btn-secondary" style="width: 100%; font-size: 13px;" onclick="runCitizenAdminRouteTest()">
+                        Run Test 1
+                    </button>
+                    <div id="test1Output" class="test-output">Click "Run Test 1" to evaluate.</div>
+                </div>
+
+                <!-- Test 2: Approved Admin Authorization -->
+                <div class="test-box">
+                    <h4>Test 2: Approved Admin Authorization</h4>
+                    <p>Authenticates as <code>pwd.admin@gov.in</code> and calls <code>/api/admin/verify</code>. Must return <strong>200 OK</strong> with assigned PWD department.</p>
+                    <button class="btn-secondary" style="width: 100%; font-size: 13px;" onclick="runApprovedAdminTest()">
+                        Run Test 2 (PWD Admin)
+                    </button>
+                    <div id="test2Output" class="test-output">Click "Run Test 2" to evaluate.</div>
+                </div>
+
+                <!-- Test 3: Unknown @gov.in Account Rejection -->
+                <div class="test-box">
+                    <h4>Test 3: Reject Unknown @gov.in Account</h4>
+                    <p>Attempts login with <code>unknown.admin@gov.in</code>. Must be strictly rejected with <strong>403 Forbidden</strong>.</p>
+                    <button class="btn-secondary" style="width: 100%; font-size: 13px;" onclick="runUnknownAdminTest()">
+                        Run Test 3 (Unknown Admin)
+                    </button>
+                    <div id="test3Output" class="test-output">Click "Run Test 3" to evaluate.</div>
+                </div>
+
+                <!-- Test 4: Department Isolation Check -->
+                <div class="test-box">
+                    <h4>Test 4: Department Mapping Check</h4>
+                    <p>Authenticates as <code>water.admin@gov.in</code>. Must map exclusively to <strong>TWAD Board</strong> without cross-department access.</p>
+                    <button class="btn-secondary" style="width: 100%; font-size: 13px;" onclick="runWaterAdminTest()">
+                        Run Test 4 (Water Admin)
+                    </button>
+                    <div id="test4Output" class="test-output">Click "Run Test 4" to evaluate.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= FAST ROLE SWITCHER (FOR EVALUATORS) ================= -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title" style="font-size: 17px;">Demo Role Quick Switcher</h3>
+                <span style="font-size: 12px; color: #64748b;">One-click session switching for testing</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <button class="btn-secondary" onclick="simulateGoogleLogin('priya.citizen@gmail.com', 'Priya Sundaram')">
+                    👤 Citizen: Priya Sundaram
+                </button>
+                <button class="btn-secondary" onclick="quickAdminLogin('pwd.admin@gov.in')">
+                    🏛️ Admin: PWD Roads Division
+                </button>
+                <button class="btn-secondary" onclick="quickAdminLogin('water.admin@gov.in')">
+                    💧 Admin: TWAD Water Board
+                </button>
+                <button class="btn-secondary" onclick="quickAdminLogin('electricity.admin@gov.in')">
+                    ⚡ Admin: TANGEDCO Electricity
+                </button>
+                <button class="btn-secondary" onclick="logoutUser()">
+                    🚪 Logout Current User
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= GOOGLE LOGIN MODAL ================= -->
+    <div id="googleLoginModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('googleLoginModal')">&times;</button>
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Sign in with Google</h3>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">
+                Authenticate as a citizen to submit and track your civic grievances.
+            </p>
+
+            <label>Citizen Full Name</label>
+            <input type="text" id="googleNameInput" value="Priya Sundaram" placeholder="e.g. Priya Sundaram">
+
+            <label>Google Account Email</label>
+            <input type="email" id="googleEmailInput" value="priya.citizen@gmail.com" placeholder="e.g. yourname@gmail.com">
+
+            <button class="btn-primary" onclick="submitGoogleLogin()">
+                Complete Google Sign-In
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN LOGIN MODAL ================= -->
+    <div id="adminLoginModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('adminLoginModal')">&times;</button>
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Department Administrator Login</h3>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">
+                Authorized access for pre-approved <code>@gov.in</code> departmental accounts.
+            </p>
+
+            <label>Government Email ID (@gov.in)</label>
+            <input type="email" id="adminEmailInput" value="pwd.admin@gov.in" placeholder="department.admin@gov.in">
+
+            <label>Password</label>
+            <input type="password" id="adminPasswordInput" value="Admin@gov2026">
+
+            <button class="btn-primary" onclick="submitAdminLogin()">
+                Authenticate as Department Admin
+            </button>
+
+            <div style="margin-top: 18px;">
+                <div style="font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 6px;">
+                    Approved Prototype Demo Accounts:
+                </div>
+                <div class="demo-accounts-list">
+                    <div class="demo-account-item" onclick="selectDemoAdmin('pwd.admin@gov.in')">
+                        <div>
+                            <div class="account-title">pwd.admin@gov.in</div>
+                            <div class="account-sub">PWD – Roads Division</div>
+                        </div>
+                        <span style="font-size: 11px; color: #2563eb; font-weight: 600;">Select</span>
+                    </div>
+                    <div class="demo-account-item" onclick="selectDemoAdmin('water.admin@gov.in')">
+                        <div>
+                            <div class="account-title">water.admin@gov.in</div>
+                            <div class="account-sub">TWAD Water Supply & Drainage Board</div>
+                        </div>
+                        <span style="font-size: 11px; color: #2563eb; font-weight: 600;">Select</span>
+                    </div>
+                    <div class="demo-account-item" onclick="selectDemoAdmin('electricity.admin@gov.in')">
+                        <div>
+                            <div class="account-title">electricity.admin@gov.in</div>
+                            <div class="account-sub">TANGEDCO Electricity Board</div>
+                        </div>
+                        <span style="font-size: 11px; color: #2563eb; font-weight: 600;">Select</span>
+                    </div>
+                    <div class="demo-account-item" onclick="selectDemoAdmin('municipal.waste.admin@gov.in')">
+                        <div>
+                            <div class="account-title">municipal.waste.admin@gov.in</div>
+                            <div class="account-sub">Solid Waste Management Department</div>
+                        </div>
+                        <span style="font-size: 11px; color: #2563eb; font-weight: 600;">Select</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CITIZEN PROFILE MODAL ================= -->
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('profileModal')">&times;</button>
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Citizen Profile Details</h3>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">
+                Manage your citizen contact information for receiving resolution updates.
+            </p>
+
+            <label>Full Name</label>
+            <input type="text" id="profNameInput">
+
+            <label>Email (Verified via Google)</label>
+            <input type="email" id="profEmailInput" disabled style="background: #f1f5f9; cursor: not-allowed;">
+
+            <label>Phone Number</label>
+            <input type="text" id="profPhoneInput" placeholder="+91 98765 43210">
+
+            <label>Preferred Language</label>
+            <select id="profLangInput">
+                <option value="English">English</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Tamil & English" selected>Tamil & English</option>
+            </select>
+
+            <label>Default Location / Ward</label>
+            <input type="text" id="profLocInput" placeholder="e.g. Anna Nagar, Dharmapuri">
+
+            <button class="btn-primary" onclick="saveProfileChanges()">
+                Save Profile Changes
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="footer">
+        <div><strong>CivicRoute AI</strong> – Intelligent Citizen Complaint Routing & Department Grievance Management System</div>
+        <div class="disclaimer-box">
+            <strong>Prototype Disclaimer:</strong> All department mappings, @gov.in accounts, SLA countdowns, and automated priority recommendations are designed for demonstration and hackathon prototype purposes. Not an official government portal.
+        </div>
+    </footer>
+
+    <!-- ================= CLIENT JAVASCRIPT ================= -->
+    <script>
+        let currentUser = null;
+        let userToken = localStorage.getItem("civicroute_token") || null;
+
+        // Initialize session on load
+        window.addEventListener("DOMContentLoaded", async () => {
+            await refreshSession();
+        });
+
+        async function refreshSession() {
+            if (!userToken) {
+                renderHeader();
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/auth/me", {
+                    headers: { "Authorization": `Bearer ${userToken}` }
+                });
+                const data = await res.json();
+                if (data.authenticated && data.user) {
+                    currentUser = data.user;
+                    renderHeader();
+                    renderBanner();
+                } else {
+                    localStorage.removeItem("civicroute_token");
+                    userToken = null;
+                    currentUser = null;
+                    renderHeader();
+                }
+            } catch (err) {
+                console.error("Session refresh error:", err);
+                renderHeader();
+            }
+        }
+
+        function renderHeader() {
+            const area = document.getElementById("headerAuthArea");
+            if (!currentUser) {
+                area.innerHTML = `
+                    <button class="btn-header btn-header-login" onclick="openGoogleLoginModal()">
+                        Continue with Google
+                    </button>
+                    <button class="btn-header btn-header-admin" onclick="openAdminLoginModal()">
+                        Gov Admin Portal
+                    </button>
+                `;
+                document.getElementById("roleBanner").style.display = "none";
+                return;
+            }
+
+            const isAdm = currentUser.role === "admin";
+            const initial = (currentUser.name || currentUser.email || "U")[0].toUpperCase();
+
+            area.innerHTML = `
+                <div class="user-pill">
+                    <div class="user-avatar">${initial}</div>
+                    <div class="user-info">
+                        <span class="user-name">${currentUser.name || currentUser.email}</span>
+                        <span class="user-role-tag">${isAdm ? (currentUser.department || "Admin") : "Citizen"}</span>
+                    </div>
+                </div>
+                ${!isAdm ? `
+                    <button class="btn-header btn-header-admin" onclick="openProfileModal()">
+                        Profile
+                    </button>
+                ` : ''}
+                <button class="btn-header btn-header-logout" onclick="logoutUser()">
+                    Logout
+                </button>
+            `;
+            renderBanner();
+        }
+
+        function renderBanner() {
+            const banner = document.getElementById("roleBanner");
+            if (!currentUser) {
+                banner.style.display = "none";
+                return;
+            }
+
+            banner.style.display = "flex";
+            if (currentUser.role === "admin") {
+                banner.className = "role-alert-banner role-alert-admin";
+                document.getElementById("roleBannerTitle").textContent = `🏛️ Department Administrator Portal: ${currentUser.department}`;
+                document.getElementById("roleBannerSubtitle").textContent = `Authenticated: ${currentUser.email} • Strict departmental filtering active`;
+            } else {
+                banner.className = "role-alert-banner role-alert-citizen";
+                document.getElementById("roleBannerTitle").textContent = `👤 Citizen Portal: Welcome, ${currentUser.name}`;
+                document.getElementById("roleBannerSubtitle").textContent = `Authenticated: ${currentUser.email} • Your grievances are strictly private`;
+            }
+        }
+
+        // ================= MODAL CONTROLS =================
+        function openGoogleLoginModal() {
+            document.getElementById("googleLoginModal").style.display = "flex";
+        }
+        function openAdminLoginModal() {
+            document.getElementById("adminLoginModal").style.display = "flex";
+        }
+        function openProfileModal() {
+            if (!currentUser) return;
+            document.getElementById("profNameInput").value = currentUser.name || "";
+            document.getElementById("profEmailInput").value = currentUser.email || "";
+            document.getElementById("profPhoneInput").value = currentUser.phone || "";
+            document.getElementById("profLangInput").value = currentUser.preferredLanguage || "Tamil & English";
+            document.getElementById("profLocInput").value = currentUser.defaultLocation || "";
+            document.getElementById("profileModal").style.display = "flex";
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = "none";
+        }
+
+        function selectDemoAdmin(email) {
+            document.getElementById("adminEmailInput").value = email;
+            document.getElementById("adminPasswordInput").value = "Admin@gov2026";
+        }
+
+        // ================= AUTH ACTIONS =================
+        async function submitGoogleLogin() {
+            const name = document.getElementById("googleNameInput").value.trim();
+            const email = document.getElementById("googleEmailInput").value.trim();
+            if (!email) return alert("Email is required");
+            await simulateGoogleLogin(email, name);
+            closeModal("googleLoginModal");
+        }
+
+        async function simulateGoogleLogin(email, name) {
+            try {
+                const res = await fetch("/api/auth/google", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, name })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    userToken = data.token;
+                    localStorage.setItem("civicroute_token", userToken);
+                    currentUser = data.user;
+                    renderHeader();
+                    alert(`Signed in as Citizen: ${currentUser.name} (${currentUser.email})`);
+                } else {
+                    alert(data.error || "Login failed");
+                }
+            } catch (err) {
+                alert("Error connecting to server: " + err.message);
+            }
+        }
+
+        async function submitAdminLogin() {
+            const email = document.getElementById("adminEmailInput").value.trim();
+            const password = document.getElementById("adminPasswordInput").value.trim();
+            if (!email) return alert("Admin email required");
+
+            try {
+                const res = await fetch("/api/auth/admin-login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    userToken = data.token;
+                    localStorage.setItem("civicroute_token", userToken);
+                    currentUser = data.user;
+                    renderHeader();
+                    closeModal("adminLoginModal");
+                    alert(`Authenticated as Administrator for:\n${data.department}`);
+                } else {
+                    alert(data.error || "Admin authentication failed");
+                }
+            } catch (err) {
+                alert("Error connecting to server: " + err.message);
+            }
+        }
+
+        async function quickAdminLogin(email) {
+            try {
+                const res = await fetch("/api/auth/admin-login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password: "Admin@gov2026" })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    userToken = data.token;
+                    localStorage.setItem("civicroute_token", userToken);
+                    currentUser = data.user;
+                    renderHeader();
+                    alert(`Switched to: ${currentUser.name}\nDepartment: ${data.department}`);
+                } else {
+                    alert(data.error || "Quick login failed");
+                }
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        }
+
+        async function logoutUser() {
+            try {
+                await fetch("/api/auth/logout", { method: "POST" });
+            } catch (e) {}
+            localStorage.removeItem("civicroute_token");
+            userToken = null;
+            currentUser = null;
+            renderHeader();
+            alert("Logged out successfully.");
+        }
+
+        async function saveProfileChanges() {
+            const name = document.getElementById("profNameInput").value.trim();
+            const phone = document.getElementById("profPhoneInput").value.trim();
+            const preferredLanguage = document.getElementById("profLangInput").value;
+            const defaultLocation = document.getElementById("profLocInput").value.trim();
+
+            try {
+                const res = await fetch("/api/profile", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({ name, phone, preferredLanguage, defaultLocation })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    renderHeader();
+                    closeModal("profileModal");
+                    alert("Citizen profile updated successfully!");
+                } else {
+                    alert(data.error || "Profile update failed");
+                }
+            } catch (err) {
+                alert("Error saving profile: " + err.message);
+            }
+        }
+
+        // ================= TESTING SUITE AUTOMATIONS =================
+        async function runCitizenAdminRouteTest() {
+            const out = document.getElementById("test1Output");
+            out.textContent = "Testing GET /api/admin/verify with current token...";
+            try {
+                const res = await fetch("/api/admin/verify", {
+                    headers: userToken ? { "Authorization": `Bearer ${userToken}` } : {}
+                });
+                const data = await res.json();
+                if (res.status === 403 || res.status === 401) {
+                    out.style.color = "#4ade80";
+                    out.textContent = `[PASSED] Status ${res.status} ${res.statusText}\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    out.style.color = "#f87171";
+                    out.textContent = `[FAILED] Citizen received 200 OK! Expected 403 Forbidden.\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (e) {
+                out.textContent = "Request error: " + e.message;
+            }
+        }
+
+        async function runApprovedAdminTest() {
+            const out = document.getElementById("test2Output");
+            out.textContent = "Authenticating as pwd.admin@gov.in and verifying admin route...";
+            try {
+                const loginRes = await fetch("/api/auth/admin-login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: "pwd.admin@gov.in", password: "Admin@gov2026" })
+                });
+                const loginData = await loginRes.json();
+                if (!loginData.success) {
+                    out.style.color = "#f87171";
+                    out.textContent = `[FAILED] Login failed: ${loginData.error}`;
+                    return;
+                }
+
+                // Call protected route
+                const verifyRes = await fetch("/api/admin/verify", {
+                    headers: { "Authorization": `Bearer ${loginData.token}` }
+                });
+                const verifyData = await verifyRes.json();
+
+                if (verifyRes.ok && verifyData.department === "Public Works Department (PWD) – Roads Division") {
+                    out.style.color = "#4ade80";
+                    out.textContent = `[PASSED] Verified Admin for PWD!\nDepartment: ${verifyData.department}\nQuota: ${verifyData.dailyQuota.processedToday}/${verifyData.dailyQuota.dailyLimit}`;
+                } else {
+                    out.style.color = "#f87171";
+                    out.textContent = `[FAILED] ${JSON.stringify(verifyData)}`;
+                }
+            } catch (e) {
+                out.textContent = "Error: " + e.message;
+            }
+        }
+
+        async function runUnknownAdminTest() {
+            const out = document.getElementById("test3Output");
+            out.textContent = "Attempting admin login with unknown.admin@gov.in...";
+            try {
+                const res = await fetch("/api/auth/admin-login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: "unknown.admin@gov.in", password: "Admin@gov2026" })
+                });
+                const data = await res.json();
+                if (res.status === 403) {
+                    out.style.color = "#4ade80";
+                    out.textContent = `[PASSED] HTTP 403 Forbidden.\nRejection Reason: ${data.error}`;
+                } else {
+                    out.style.color = "#f87171";
+                    out.textContent = `[FAILED] Expected 403, received ${res.status}: ${JSON.stringify(data)}`;
+                }
+            } catch (e) {
+                out.textContent = "Error: " + e.message;
+            }
+        }
+
+        async function runWaterAdminTest() {
+            const out = document.getElementById("test4Output");
+            out.textContent = "Authenticating as water.admin@gov.in and verifying department binding...";
+            try {
+                const loginRes = await fetch("/api/auth/admin-login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: "water.admin@gov.in", password: "Admin@gov2026" })
+                });
+                const loginData = await loginRes.json();
+                if (loginData.success && loginData.department === "Tamil Nadu Water Supply and Drainage Board (TWAD Board)") {
+                    out.style.color = "#4ade80";
+                    out.textContent = `[PASSED] Bound strictly to: ${loginData.department}\nEmail: ${loginData.user.email}`;
+                } else {
+                    out.style.color = "#f87171";
+                    out.textContent = `[FAILED] Mapping mismatch: ${JSON.stringify(loginData)}`;
+                }
+            } catch (e) {
+                out.textContent = "Error: " + e.message;
+            }
+        }
+    </script>
+</body>
+</html>
